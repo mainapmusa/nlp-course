@@ -26,6 +26,7 @@ def _parse_args():
     parser.add_argument('--blind_test_path', type=str, default='data/test-blind.txt', help='path to blind test set (you should not need to modify)')
     parser.add_argument('--test_output_path', type=str, default='test-blind.output.txt', help='output path for test predictions')
     parser.add_argument('--no_run_on_test', dest='run_on_test', default=True, action='store_false', help='skip printing output on the test set')
+    # parser.add_argument('--small_test', action='store_false', help='just do first 10 examples')
     args = parser.parse_args()
     return args
 
@@ -82,13 +83,38 @@ if __name__ == '__main__':
     args = _parse_args()
     print(args)
 
+    small_test = False
     # Load train, dev, and test exs and index the words.
-    train_exs = read_sentiment_examples(args.train_path)
-    dev_exs = read_sentiment_examples(args.dev_path)
-    test_exs_words_only = read_blind_sst_examples(args.blind_test_path)
+    if small_test:
+        train_exs = read_sentiment_examples(args.train_path)
+        train_exs = [ex for ex in train_exs if "not" in ex.words]
+        train_exs = train_exs[:10]
+        dev_exs = read_sentiment_examples(args.dev_path)[:10]
+        test_exs_words_only = read_blind_sst_examples(args.blind_test_path)[:10]
+    else:
+        train_exs = read_sentiment_examples(args.train_path)
+        dev_exs = read_sentiment_examples(args.dev_path)
+        test_exs_words_only = read_blind_sst_examples(args.blind_test_path)
     print(repr(len(train_exs)) + " / " + repr(len(dev_exs)) + " / " + repr(len(test_exs_words_only)) + " train/dev/test examples")
 
     # Train and evaluate
+    # start = .008
+    # step = .0005
+    # stop = .012
+    # alpha_list = np.arange(start, stop + step, step)
+    # print(alpha_list)
+    # for epoch in [100,120]:
+    #     for alpha in alpha_list:
+    #         start_time = time.time()
+    #         curr_model = train_model(args, train_exs, dev_exs, epoch, alpha)
+    #         print("\n\n")
+    #         print(f"num epochs = {epoch}, alpha = {alpha}")
+    #         print("=====Train Accuracy=====")
+    #         evaluate(curr_model, train_exs)
+    #         print("=====Dev Accuracy=====")
+    #         evaluate(curr_model, dev_exs)
+    #         print("Time for training and evaluation: %.2f seconds" % (time.time() - start_time))
+
     start_time = time.time()
     model = train_model(args, train_exs, dev_exs)
     print("=====Train Accuracy=====")
